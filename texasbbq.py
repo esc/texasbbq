@@ -390,6 +390,66 @@ class GitTarget(object):
         os.chdir('../')
 
 
+class CondaTarget(object):
+
+    @property
+    def name(self):
+        """Name of the target.
+
+        Returns
+        -------
+        name : str
+            The name of the target.
+
+        """
+        raise NotImplementedError
+
+    @property
+    def conda_package(self):
+        """Name of the conda package for this target.
+
+        Returns
+        -------
+        name : str
+            The name of the conda package
+
+        """
+        raise NotImplementedError
+
+    @property
+    def conda_dependencies(self):
+        """Conda dependencies for this target.
+
+        The conda dependencies for this target. If you need to install things
+        in a specific order with multiple, subsequent, `conda` calls, use
+        multiple strings. You can include any channel information such as `-c
+        numba` in the string.
+
+        Returns
+        -------
+        dependencies : list of str
+            All conda dependencies.
+        """
+        raise NotImplementedError
+
+    def test_command(self):
+        """Execute command to run tests.
+
+        Use this to execute the command or commands you need to run the
+        test-suite. 
+
+        """
+        raise NotImplementedError
+
+    def install(self):
+        """Install target into conda environment."""
+        conda_install(self.name, self.conda_package)
+
+    def test(self):
+        """Run targets test command inside conda environment."""
+        execute("conda run -n {} {}".format(self.name, self.test_command))
+
+
 def bootstrap_miniconda():
     """Download, install and update miniconda."""
     url = miniconda_url()
@@ -424,9 +484,9 @@ def find_all_targets(module):
     return [
         obj()
         for name, obj in inspect.getmembers(sys.modules[module])
-        if inspect.isclass(obj)
-        and issubclass(obj, GitTarget)
-        and obj is not GitTarget
+        if (inspect.isclass(obj)
+            and ((issubclass(obj, GitTarget) and obj is not GitTarget)
+            or (issubclass(obj, CondaTarget) and obj is not CondaTarget)))
     ]
 
 

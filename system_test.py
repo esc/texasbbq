@@ -11,6 +11,7 @@ from texasbbq import (main,
                       git_ls_remote_tags,
                       CondaSource,
                       GitTarget,
+                      CondaTarget,
                       )
 
 
@@ -52,6 +53,25 @@ class UmapTests(GitTarget):
     @property
     def test_command(self):
         return "nosetests -s umap"
+
+
+class PandasTests(CondaTarget):
+
+    @property
+    def name(self):
+        return "pandas"
+
+    @property
+    def conda_package(self):
+        return self.name
+
+    @property
+    def conda_dependencies(self):
+        return ["pytest hypothesis"]
+
+    @property
+    def test_command(self):
+        return "python -c 'import pandas as pd ; pd.test()'"
 
 
 if __name__ == "__main__":
